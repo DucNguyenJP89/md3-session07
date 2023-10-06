@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "point": 9,
+    "feedback": "Awesome!"
+  },
+  {
+    "id": 2,
+    "point": 2,
+    "feedback": "I hate it!"
+  },
+  {
+    "id": 3,
+    "point": 6,
+    "feedback": "It was ok, but it could have been better!"
+  }
+]
