@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 
-function FormComponent() {
+function FormComponent({selectedFeedback}) {
   const [ userInput, setUserInput ] = useState({
     point: 0,
     feedback: ''
@@ -22,6 +23,30 @@ function FormComponent() {
     e.preventDefault();
     if (userInput.point === 0 || userInput.feedback === '') {
       alert('You have to input both point and feedback')
+    } else if (userInput.id) {
+      console.log('This is edit action');
+      fetch(`http://localhost:3000/api/v1/feedbacks/${userInput.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          point: userInput.point,
+          feedback: userInput.feedback
+        })
+      }).then(res => res.json()).then(data => {
+        if (data.status === 'success') {
+          Swal.fire({
+            title: 'Success',
+            icon: 'success',
+            text: `${data.message}`
+          }).then(() => {
+            setUserInput({
+              point: 0,
+              feedback: ''
+            })
+            window.location.href = '/'
+          })
+        }
+      }).catch(err => console.log(err))
     } else {
       console.log(userInput);
       fetch("http://localhost:3000/api/v1/feedbacks", {
@@ -40,6 +65,12 @@ function FormComponent() {
       }).catch(err => console.log(err));
     }
   }
+  useEffect(() => {
+    if (Object.keys(selectedFeedback).length > 0) {
+      console.log(selectedFeedback);
+      setUserInput(selectedFeedback);
+    }
+  }, [selectedFeedback])
   return (
     <div className="section-feedback-form container">
       <div className="form-container">
@@ -58,7 +89,7 @@ function FormComponent() {
         </div>
         <form className="main-form">
           <div className="input-wrapper">
-            <input type="text" onChange={handleInput}/>
+            <input type="text" onChange={handleInput} defaultValue={userInput.feedback}/>
             <button type="submit" onClick={handleSubmit}>Send</button>
           </div>
         </form>

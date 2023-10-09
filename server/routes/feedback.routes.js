@@ -4,6 +4,19 @@ const fs = require('fs');
 
 const basePath = "/Users/ducnguyen/Documents/Personal/RikkeiAcademy/MD3/session07/server"
 
+const checkExists = (req, res, next) => {
+  const {id} = req.params;
+  let feedbacks = fs.readFileSync(`${basePath}/data/feedbacks.json`);
+  feedbacks = JSON.parse(feedbacks);
+  let feedback = feedbacks.find(feedback => feedback.id === Number(id));
+  if (!feedback) {
+    res.status(404).json({
+      error: 'Feedback not found'
+    })
+  } else {
+    next();
+  }
+}
 
 // api to get all feedbacks
 router.get('/', (req, res) => {
@@ -32,9 +45,34 @@ router.post('/', (req, res) => {
 })
 
 // api to update a feedback
-router.patch('/:id', (req, res) => {})
+router.patch('/:id', checkExists, (req, res) => {
+  const { id } = req.params;
+  let feedbacks = fs.readFileSync(`${basePath}/data/feedbacks.json`);
+  feedbacks = JSON.parse(feedbacks);
+  let feedbackIndex = feedbacks.findIndex(feedback => feedback.id === Number(id));
+  feedbacks[feedbackIndex] = {
+    ...feedbacks[feedbackIndex],
+    ...req.body
+  }
+  fs.writeFileSync(`${basePath}/data/feedbacks.json`, JSON.stringify(feedbacks));
+  res.json({
+    status: 'success',
+    message: 'Feedback updated successfully'
+  })
+})
 
 // api to delete a feedback
-router.delete('/:id', (req, res) => {})
+router.delete('/:id', checkExists, (req, res) => {
+  const { id } = req.params;
+  let feedbacks = fs.readFileSync(`${basePath}/data/feedbacks.json`);
+  feedbacks = JSON.parse(feedbacks);
+  let feedbackIndex = feedbacks.findIndex(feedback => feedback.id === Number(id));
+  feedbacks.splice(feedbackIndex, 1);
+  fs.writeFileSync(`${basePath}/data/feedbacks.json`, JSON.stringify(feedbacks));
+  res.json({
+    status: 'success',
+    message: 'Feedback deleted successfully'
+  })
+})
 
 module.exports = router;

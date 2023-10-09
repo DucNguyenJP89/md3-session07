@@ -7,6 +7,7 @@ import ListComponent from "./components/ListComponent";
 
 function App() {
   const [ feedbacks, setFeedbacks ] = useState([]);
+  const [ selectedFeedback, setSelectedFeedback ] = useState({});
   useEffect(() => {
     fetch("http://localhost:3000/api/v1/feedbacks")
       .then((res) => res.json())
@@ -18,9 +19,9 @@ function App() {
   return (
   <div className="App">
     <div className="Navbar">Feedback TA</div>
-    <FormComponent />
+    <FormComponent selectedFeedback={selectedFeedback}/>
     <TotalComponent feedbacks={feedbacks}/>
-    <ListComponent feedbacks={feedbacks}/>
+    <ListComponent feedbacks={feedbacks} setSelectedFeedback={setSelectedFeedback}/>
   </div>);
 }
 
