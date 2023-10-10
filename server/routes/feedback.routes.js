@@ -1,78 +1,94 @@
-const express = require('express')
+const express = require("express");
+const db = require("../utils/database");
 const router = express.Router();
-const fs = require('fs');
+const fs = require("fs");
 
-const basePath = "/Users/ducnguyen/Documents/Personal/RikkeiAcademy/MD3/session07/server"
+const basePath =
+  "/Users/ducnguyen/Documents/Personal/RikkeiAcademy/MD3/session07/server";
 
 const checkExists = (req, res, next) => {
-  const {id} = req.params;
-  let feedbacks = fs.readFileSync(`${basePath}/data/feedbacks.json`);
-  feedbacks = JSON.parse(feedbacks);
-  let feedback = feedbacks.find(feedback => feedback.id === Number(id));
-  if (!feedback) {
-    res.status(404).json({
-      error: 'Feedback not found'
+  const { id } = req.params;
+  let result = db.execute(`SELECT * FROM feedbacks WHERE id=${id}`);
+  result
+    .then((data) => {
+      const feedback = data[0];
+      if (feedback.length === 0) {
+        res.json({
+          status: 404,
+          message: "Feedback not found",
+        });
+      } else {
+        next();
+      }
     })
-  } else {
-    next();
-  }
-}
+    .catch((err) => console.log(err));
+};
 
 // api to get all feedbacks
-router.get('/', (req, res) => {
-  let feedbacks = fs.readFileSync(`${basePath}/data/feedbacks.json`);
-  feedbacks = JSON.parse(feedbacks);
-  res.json({
-    status: 'success',
-    feedbacks
-  });
-})
+router.get("/", (req, res) => {
+  let result = db.execute("SELECT * FROM feedbacks");
+  result
+    .then((data) =>
+      res.json({
+        status: "success",
+        feedbacks: data[0],
+      })
+    )
+    .catch((err) =>
+      res.json({
+        status: err.status,
+        message: err.message,
+      })
+    );
+});
 
 // api to create a new feedback
-router.post('/', (req, res) => {
-  let feedbacks = fs.readFileSync(`${basePath}/data/feedbacks.json`);
-  feedbacks = JSON.parse(feedbacks);
-  let newFeedback = {
-    id: Math.floor(Math.random()*10000),
-    ...req.body
-  }
-  feedbacks.unshift(newFeedback);
-  fs.writeFileSync(`${basePath}/data/feedbacks.json`, JSON.stringify(feedbacks));
+router.post("/", (req, res) => {
+  let { point, feedback } = req.body;
+  let result = db.execute(`INSERT INTO feedbacks (point, feedback) VALUES ('${point}', '${feedback}');`);
+  result.then(data => {
+    console.log(data[0]);
+    res.json({
+      status: "success",
+      message: "Added new feedback successfully",
+    });
+  }).catch((err) => console.log(err));
+});
+
+// api to get one feedback
+router.get("/:id", checkExists, (req, res) => {
   res.json({
-    status: 'success',
-    message: 'Added new feedback successfully'
-  })
-})
+    message: "testing",
+  });
+});
 
 // api to update a feedback
-router.patch('/:id', checkExists, (req, res) => {
+router.patch("/:id", checkExists, (req, res) => {
   const { id } = req.params;
-  let feedbacks = fs.readFileSync(`${basePath}/data/feedbacks.json`);
-  feedbacks = JSON.parse(feedbacks);
-  let feedbackIndex = feedbacks.findIndex(feedback => feedback.id === Number(id));
-  feedbacks[feedbackIndex] = {
-    ...feedbacks[feedbackIndex],
-    ...req.body
-  }
-  fs.writeFileSync(`${basePath}/data/feedbacks.json`, JSON.stringify(feedbacks));
-  res.json({
-    status: 'success',
-    message: 'Feedback updated successfully'
-  })
-})
+  const { point, feedback } = req.body;
+  let updateQuery = `UPDATE feedbacks SET point='${point}', feedback='${feedback}' WHERE (id='${id}')`;
+  let result = db.execute(updateQuery);
+  result.then(data => {
+    console.log(data);
+    res.json({
+      status: "success",
+      message: "Feedback updated successfully",
+    });
+  }).catch(err => console.log(err));
+});
 
 // api to delete a feedback
-router.delete('/:id', checkExists, (req, res) => {
+router.delete("/:id", checkExists, (req, res) => {
   const { id } = req.params;
-  let feedbacks = fs.readFileSync(`${basePath}/data/feedbacks.json`);
-  feedbacks = JSON.parse(feedbacks);
-  let feedbackIndex = feedbacks.findIndex(feedback => feedback.id === Number(id));
-  feedbacks.splice(feedbackIndex, 1);
-  fs.writeFileSync(`${basePath}/data/feedbacks.json`, JSON.stringify(feedbacks));
-  res.json({
-    status: 'success',
-    message: 'Feedback deleted successfully'
-  })
-})
+  let deleteQuery = `DELETE FROM feedbacks WHERE id='${id}'`;
+  let result = db.execute(deleteQuery);
+  result.then(data => {
+    console.log(data);
+    res.json({
+      status: "success",
+      message: "Feedback deleted successfully",
+    });
+  }).catch(err => console.log(err));
+});
 
 module.exports = router;

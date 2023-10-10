@@ -1,8 +1,8 @@
 import React from "react";
 
 function TotalComponent({feedbacks}) {
-  const totalNum = feedbacks.length;
-  const averagePoint = feedbacks.reduce((sum, feedback)=> {
+  const totalNum = feedbacks?.length;
+  const averagePoint = feedbacks?.reduce((sum, feedback)=> {
     return sum + feedback.point
   }, 0)/totalNum;
   return (
